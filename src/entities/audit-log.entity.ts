@@ -23,6 +23,7 @@ export class AuditLog {
   @Column({
     type: "enum",
     enum: AuditEventType,
+    enumName: "audit_event_type_enum",
   })
   eventType: AuditEventType;
 
