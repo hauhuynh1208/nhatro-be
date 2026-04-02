@@ -8,4 +8,5 @@ export enum AuditEventType {
   TOKEN_REVOKED = "token_revoked",
   UNAUTHORIZED_ACCESS = "unauthorized_access",
   FORBIDDEN_ACCESS = "forbidden_access",
+  USER_CREATED = "user_created",
 }

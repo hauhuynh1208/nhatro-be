@@ -15,7 +15,9 @@
     "migration:run": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/data-source.ts migration:run",
     "migration:revert": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/data-source.ts migration:revert",
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
-    "db:setup": "pnpm migration:run && pnpm seed"
+    "db:setup": "pnpm migration:run && pnpm seed",
+    "db:reset": "bash scripts/reset-db.sh",
+    "db:fresh": "bash scripts/reset-db.sh && pnpm db:setup && bash scripts/verify-db.sh"
   },
   "dependencies": {
     "@nestjs/common": "11.1.17",

@@ -60,7 +60,7 @@ echo ""
 echo "👤 3. Admin user"
 ADMIN=$($PSQL -c "SELECT email, role, \"isActive\", \"emailVerifiedAt\" FROM users WHERE email = 'admin@nhatro.com';" 2>&1)
 check "admin user exists"           "$ADMIN" "admin@nhatro.com"
-check "role is admin"               "$ADMIN" "admin"
+check "role is 1 (admin)"           "$ADMIN" "| *1 *|"
 check "isActive is true"            "$ADMIN" "t"
 check "emailVerifiedAt is set"      "$ADMIN" "2026"
 echo ""

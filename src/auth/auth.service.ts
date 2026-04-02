@@ -25,7 +25,7 @@ export class AuthService {
     meta: { ipAddress?: string; userAgent?: string } = {},
   ): Promise<{
     accessToken: string;
-    user: { id: string; email: string; role: string };
+    user: { id: string; email: string; role: number };
   }> {
     const user = await this.userRepository.findOne({
       where: { email: dto.email },
@@ -62,7 +62,7 @@ export class AuthService {
 
     return {
       accessToken,
-      user: { id: user.id, email: user.email, role: user.role },
+      user: { id: user.id, email: user.email, role: user.role as number },
     };
   }
 }

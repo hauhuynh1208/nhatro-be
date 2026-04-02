@@ -1,20 +1,18 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
+// Combined migration: merges original InitialSchema + RoleColumnToSmallint.
+// Role is stored as smallint from the start (1=admin, 2=seller, 3=buyer).
 export class InitialSchema1712005200000 implements MigrationInterface {
   name = "InitialSchema1712005200000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Create users table
-    await queryRunner.query(`
-      CREATE TYPE "user_role_enum" AS ENUM('admin', 'seller', 'buyer');
-    `);
-
+    // Create users table — role as smallint (1=admin, 2=seller, 3=buyer)
     await queryRunner.query(`
       CREATE TABLE "users" (
         "id" uuid NOT NULL DEFAULT gen_random_uuid(),
         "email" character varying NOT NULL,
         "password" character varying NOT NULL,
-        "role" "user_role_enum" NOT NULL DEFAULT 'buyer',
+        "role" smallint NOT NULL DEFAULT 3,
         "firstName" character varying,
         "lastName" character varying,
         "phoneNumber" character varying,
@@ -58,26 +56,27 @@ export class InitialSchema1712005200000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      ALTER TABLE "refresh_tokens" 
-      ADD CONSTRAINT "FK_refresh_tokens_userId" 
-      FOREIGN KEY ("userId") 
-      REFERENCES "users"("id") 
-      ON DELETE CASCADE 
+      ALTER TABLE "refresh_tokens"
+      ADD CONSTRAINT "FK_refresh_tokens_userId"
+      FOREIGN KEY ("userId")
+      REFERENCES "users"("id")
+      ON DELETE CASCADE
       ON UPDATE NO ACTION;
     `);
 
     // Create audit_logs table
     await queryRunner.query(`
       CREATE TYPE "audit_event_type_enum" AS ENUM(
-        'login_success', 
-        'login_failed', 
-        'logout', 
-        'password_reset_requested', 
-        'password_reset_completed', 
-        'token_refreshed', 
-        'token_revoked', 
-        'unauthorized_access', 
-        'forbidden_access'
+        'login_success',
+        'login_failed',
+        'logout',
+        'password_reset_requested',
+        'password_reset_completed',
+        'token_refreshed',
+        'token_revoked',
+        'unauthorized_access',
+        'forbidden_access',
+        'user_created'
       );
     `);
 
@@ -106,13 +105,11 @@ export class InitialSchema1712005200000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Drop audit_logs table
     await queryRunner.query(`DROP INDEX "IDX_audit_logs_eventType_createdAt"`);
     await queryRunner.query(`DROP INDEX "IDX_audit_logs_userId_createdAt"`);
     await queryRunner.query(`DROP TABLE "audit_logs"`);
     await queryRunner.query(`DROP TYPE "audit_event_type_enum"`);
 
-    // Drop refresh_tokens table
     await queryRunner.query(
       `ALTER TABLE "refresh_tokens" DROP CONSTRAINT "FK_refresh_tokens_userId"`,
     );
@@ -120,9 +117,7 @@ export class InitialSchema1712005200000 implements MigrationInterface {
     await queryRunner.query(`DROP INDEX "IDX_refresh_tokens_userId"`);
     await queryRunner.query(`DROP TABLE "refresh_tokens"`);
 
-    // Drop users table
     await queryRunner.query(`DROP INDEX "IDX_users_email"`);
     await queryRunner.query(`DROP TABLE "users"`);
-    await queryRunner.query(`DROP TYPE "user_role_enum"`);
   }
 }

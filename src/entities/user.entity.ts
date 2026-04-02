@@ -20,8 +20,7 @@ export class User {
   password: string;
 
   @Column({
-    type: "enum",
-    enum: UserRole,
+    type: "smallint",
     default: UserRole.BUYER,
   })
   role: UserRole;
