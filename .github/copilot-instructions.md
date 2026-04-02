@@ -126,6 +126,7 @@ src/
 3. Create service for business logic
 4. Create controller for HTTP endpoints
 5. Register module in app.module.ts
+6. Add Swagger decorators to all controllers, DTOs, and endpoints (see [Swagger Documentation](#swagger-documentation))
 
 ## Code Review Checklist
 
@@ -140,6 +141,59 @@ src/
 - [ ] Audit logs for sensitive operations
 - [ ] Environment variables used for configuration
 - [ ] No hardcoded secrets or credentials
+- [ ] Swagger decorators added/updated for all new or modified endpoints, DTOs, and controllers
+
+## Swagger Documentation
+
+Every API endpoint **must** have complete Swagger documentation. This applies when creating new endpoints and when modifying existing ones.
+
+### Required decorators
+
+**Controllers:**
+
+- `@ApiTags('tag-name')` — group endpoints in Swagger UI
+- `@ApiBearerAuth()` — on controllers/endpoints that require JWT auth
+
+**Endpoints:**
+
+- `@ApiOperation({ summary: '...' })` — short description of what the endpoint does
+- `@ApiResponse({ status: 200, description: '...', type: ResponseDto })` — document each possible response code
+- `@ApiResponse({ status: 400, description: 'Bad Request' })` — include error responses
+- `@ApiResponse({ status: 401, description: 'Unauthorized' })` — on protected endpoints
+
+**DTOs:**
+
+- `@ApiProperty({ description: '...', example: '...' })` — on every property of request/response DTOs
+- `@ApiPropertyOptional(...)` — for optional properties
+
+### Example
+
+```typescript
+@ApiTags('users')
+@ApiBearerAuth()
+@Controller('users')
+export class UsersController {
+  @Post()
+  @ApiOperation({ summary: 'Create a new user' })
+  @ApiResponse({ status: 201, description: 'User created', type: UserResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 409, description: 'Email already exists' })
+  create(@Body() dto: CreateUserDto): Promise<UserResponseDto> { ... }
+}
+```
+
+```typescript
+export class CreateUserDto {
+  @ApiProperty({
+    description: "User email address",
+    example: "user@example.com",
+  })
+  email: string;
+
+  @ApiProperty({ description: "Password (min 8 chars)", example: "Secret@123" })
+  password: string;
+}
+```
 
 ## Database & Authentication
 
