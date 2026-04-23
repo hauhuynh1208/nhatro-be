@@ -1,9 +1,39 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+build/
+
+# Environment variables
 .env
-/.idea
-.vscode
-npm-debug.log
-yarn-error.log
-package-lock.json
-yarn.lock
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Coverage
+coverage/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# TypeORM migrations (optional, keep if you want to track migrations)
+# src/migrations/
+
+# pnpm
+.pnpm-store/

@@ -13,14 +13,7 @@ This is the backend service for the nhatro (rental housing) application, built w
 - **Authentication**: JWT with Passport
 - **Password Hashing**: bcrypt
 - **Architecture**: Modular NestJS application
-
-## Quick Setup Flow
-
-1. `docker-compose up -d` — start PostgreSQL container (Docker, manual)
-2. `pnpm migration:run` — create schema
-3. `pnpm seed` — seed admin user
-
-Combined: `pnpm db:setup` (migrate + seed) or `./scripts/setup.sh` for coloured output.
+- **Package Management**: pnpm
 
 ## Coding Standards
 
@@ -54,31 +47,6 @@ Combined: `pnpm db:setup` (migrate + seed) or `./scripts/setup.sh` for coloured 
 - Methods/Variables: Use camelCase
 - Constants: Use UPPER_SNAKE_CASE
 
-## Development Commands
-
-### Server
-
-- `pnpm start:dev` - Start development server with hot reload
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-- `pnpm format` - Format code with Prettier
-
-### Docker (run manually — not in pnpm scripts)
-
-```bash
-docker-compose up -d    # start database
-docker-compose down     # stop database
-docker-compose logs -f  # view logs
-```
-
-### Database
-
-- `pnpm db:setup` - Migrate + seed in one command
-- `pnpm migration:run` - Run pending migrations
-- `pnpm migration:revert` - Revert last migration
-- `pnpm migration:generate -- src/database/migrations/Name` - Generate migration
-- `pnpm seed` - Seed admin user
-
 ## Best Practices
 
 - Always validate incoming data with DTOs
@@ -96,27 +64,73 @@ docker-compose logs -f  # view logs
 
 ## Project Structure
 
+Here is the recommended project structure for the NestJS application. When you create new modules, follow this structure to maintain consistency across the codebase.
+
 ```
-src/
-├── app.module.ts              # Root module with TypeORM config
-├── app.controller.ts          # Root controller
-├── app.service.ts             # Root service
-├── main.ts                    # Application entry point
-├── config/                    # Configuration files
-│   ├── database.config.ts     # TypeORM configuration
-│   └── jwt.config.ts          # JWT configuration
-├── entities/                  # TypeORM entities
-│   ├── user.entity.ts         # User with RBAC (admin/seller/buyer)
-│   ├── refresh-token.entity.ts # JWT refresh tokens
-│   └── audit-log.entity.ts    # Authentication audit logs
-├── common/                    # Shared code
-│   └── enums/                 # Enums
-│       ├── user-role.enum.ts  # User roles
-│       └── audit-event-type.enum.ts # Audit event types
-├── database/                  # Database related
-│   ├── migrations/            # TypeORM migrations
-│   └── seeds/                 # Database seeders
-└── data-source.ts             # TypeORM DataSource for CLI
+.
+├── dist/                   # Compiled JavaScript files
+├── node_modules/           # Project dependencies
+├── src/                    # Application source code
+│   ├── app.controller.ts   # Root controller (optional)
+│   ├── app.module.ts       # Root module of the application
+│   ├── app.service.ts      # Root service (optional)
+│   ├── main.ts             # Application entry point
+│   │
+│   ├── common/             # Shared components used across modules
+│   │   ├── decorators/     # Custom decorators (e.g., @GetUser())
+│   │   ├── dto/            # Common Data Transfer Objects
+│   │   ├── filters/        # Exception filters (e.g., http-exception.filter.ts)
+│   │   ├── guards/         # Authentication/Authorization guards (e.g., JwtAuthGuard)
+│   │   ├── interceptors/   # Request/Response interceptors (e.g., logging.interceptor.ts)
+│   │   └── pipes/          # Custom validation pipes
+│   │
+│   ├── config/             # Application configuration
+│   │   ├── app/            # Application-specific config (port, environment)
+│   │   ├── database/       # Database configuration
+│   │   └── index.ts        # Main config loader (e.g., using @nestjs/config)
+│   │
+│   └── modules/            # Feature-based modules directory
+│       │
+│       ├── auth/           # Example: Authentication module
+│       │   ├── dto/
+│       │   │   ├── login.dto.ts
+│       │   │   └── register.dto.ts
+│       │   ├── strategies/ # Passport.js strategies (e.g., jwt.strategy.ts)
+│       │   ├── auth.controller.ts
+│       │   ├── auth.module.ts
+│       │   └── auth.service.ts
+│       │
+│       ├── users/          # Example: Users module
+│       │   ├── dto/
+│       │   │   ├── create-user.dto.ts
+│       │   │   └── update-user.dto.ts
+│       │   ├── entities/
+│       │   │   └── user.entity.ts
+│       │   ├── users.controller.ts
+│       │   ├── users.module.ts
+│       │   └── users.service.ts
+│       │
+│       └── products/       # Example: Products module
+│           ├── dto/
+│           │   ├── create-product.dto.ts
+│           │   └── update-product.dto.ts
+│           ├── entities/
+│           │   └── product.entity.ts
+│           ├── products.controller.ts
+│           ├── products.module.ts
+│           └── products.service.ts
+│
+├── test/                   # End-to-end (e2e) tests
+│   ├── app.e2e-spec.ts
+│   └── jest-e2e.json
+│
+├── .eslintrc.js            # ESLint configuration
+├── .gitignore              # Git ignore file
+├── .prettierrc             # Prettier code formatter configuration
+├── nest-cli.json           # NestJS CLI configuration
+├── package.json            # Project dependencies and scripts
+├── README.md               # Project documentation
+└── tsconfig.json           # TypeScript compiler options
 ```
 
 ## When Adding New Features
@@ -146,105 +160,3 @@ src/
 ## Swagger Documentation
 
 Every API endpoint **must** have complete Swagger documentation. This applies when creating new endpoints and when modifying existing ones.
-
-### Required decorators
-
-**Controllers:**
-
-- `@ApiTags('tag-name')` — group endpoints in Swagger UI
-- `@ApiBearerAuth()` — on controllers/endpoints that require JWT auth
-
-**Endpoints:**
-
-- `@ApiOperation({ summary: '...' })` — short description of what the endpoint does
-- `@ApiResponse({ status: 200, description: '...', type: ResponseDto })` — document each possible response code
-- `@ApiResponse({ status: 400, description: 'Bad Request' })` — include error responses
-- `@ApiResponse({ status: 401, description: 'Unauthorized' })` — on protected endpoints
-
-**DTOs:**
-
-- `@ApiProperty({ description: '...', example: '...' })` — on every property of request/response DTOs
-- `@ApiPropertyOptional(...)` — for optional properties
-
-### Example
-
-```typescript
-@ApiTags('users')
-@ApiBearerAuth()
-@Controller('users')
-export class UsersController {
-  @Post()
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({ status: 201, description: 'User created', type: UserResponseDto })
-  @ApiResponse({ status: 400, description: 'Validation error' })
-  @ApiResponse({ status: 409, description: 'Email already exists' })
-  create(@Body() dto: CreateUserDto): Promise<UserResponseDto> { ... }
-}
-```
-
-```typescript
-export class CreateUserDto {
-  @ApiProperty({
-    description: "User email address",
-    example: "user@example.com",
-  })
-  email: string;
-
-  @ApiProperty({ description: "Password (min 8 chars)", example: "Secret@123" })
-  password: string;
-}
-```
-
-## Database & Authentication
-
-### Database Setup
-
-- **Docker Setup**: Run `./docker-setup.sh` for complete automated setup
-- See `DATABASE.md` for detailed instructions
-- PostgreSQL 12+ required
-- TypeORM for database operations
-- Migrations in `src/database/migrations/`
-- Seeds in `src/database/seeds/`
-
-### Default Admin User
-
-- Email: `admin@nhatro.com`
-- Password: `Admin@123`
-- Role: `admin`
-- ⚠️ Change password after first login
-
-### User Roles (RBAC)
-
-1. **admin** - Full system access, manage sellers and buyers
-2. **seller** - Manage their own rental properties
-3. **buyer** - Browse properties, make inquiries
-
-### Authentication Flow
-
-- **Login**: POST `/auth/login` → returns access token (JWT) + refresh token
-- **Refresh**: POST `/auth/refresh` → rotate refresh token, return new access token
-- **Logout**: POST `/auth/logout` → revoke refresh token
-- **Password Reset**: POST `/auth/forgot-password` + POST `/auth/reset-password`
-
-### Security Requirements
-
-- Passwords hashed with bcrypt (10 rounds minimum)
-- JWT access tokens: short-lived (15 minutes)
-- Refresh tokens: longer-lived (7 days), single-use, rotation-based
-- All auth events logged to `audit_logs` table
-- Protected endpoints return 401 (unauthenticated) or 403 (unauthorized)
-- Implement both role checks and resource ownership validation
-
-### Entities
-
-- `User` - email, password (hashed), role, profile info
-- `RefreshToken` - token, userId, expiry, revocation status
-- `AuditLog` - userId, eventType, IP, user agent, metadata
-
-## Environment Variables
-
-Required in `.env`:
-
-- `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`
-- `JWT_SECRET`, `JWT_ACCESS_TOKEN_EXPIRATION`, `JWT_REFRESH_TOKEN_EXPIRATION`
-- `NODE_ENV`, `PORT`, `BCRYPT_ROUNDS`

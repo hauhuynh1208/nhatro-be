@@ -1,224 +1,273 @@
-# nhatro-be
+# Nhatro Backend
 
-NestJS backend for the nhatro (rental housing) application with PostgreSQL and TypeORM.
-
-## Features
-
-- 🔐 JWT Authentication with refresh token rotation
-- 👥 Role-Based Access Control (RBAC): admin, seller, buyer
-- 🗃️ PostgreSQL database with TypeORM
-- 📝 Audit logging for authentication events
-- 🔒 Password hashing with bcrypt
-- 🚀 NestJS modular architecture
-- 🐳 Docker support for easy setup
-
-## Quick Start
-
-```bash
-# 1. Install dependencies
-pnpm install
-
-# 2. Copy environment file and configure
-cp .env.example .env
-
-# 3. Start the database (Docker)
-docker-compose up -d
-
-# 4. Set up database (migrate + seed)
-pnpm db:setup
-# or step by step:
-#   pnpm migration:run
-#   pnpm seed
-
-# 5. Start development server
-pnpm start:dev
-```
-
-**Default admin:** `admin@nhatro.com` / `Admin@123` — change after first login!
-
-## Detailed Setup
-
-### 1. Install Dependencies
-
-```bash
-pnpm install
-```
-
-### 2. Configure Environment
-
-```bash
-cp .env.example .env
-# Edit .env if you need different database credentials
-```
-
-### 3. Start the Database
-
-This project uses Docker for PostgreSQL:
-
-```bash
-docker-compose up -d
-```
-
-Verify it's running:
-
-```bash
-docker-compose ps
-```
-
-> See [DATABASE.md](DATABASE.md) for troubleshooting.
-
-### 4. Set Up Database
-
-```bash
-# Option A: migrate + seed in one command
-pnpm db:setup
-
-# Option B: run separately (useful when you only need one)
-pnpm migration:run   # create/update schema
-pnpm seed           # seed admin user
-```
-
-The setup script with friendlier output is also available:
-
-```bash
-./scripts/setup.sh
-```
-
-**Default Admin Credentials:**
-
-- Email: `admin@nhatro.com`
-- Password: `Admin@123`
-- ⚠️ Change this password after first login!
-
-### 5. Verify Database Setup
-
-After running `pnpm db:setup`, always verify the setup completed correctly:
-
-```bash
-./scripts/verify-db.sh
-```
-
-Expected output:
-
-```
-✅ users table exists
-✅ refresh_tokens table exists
-✅ audit_logs table exists
-✅ migrations table exists
-✅ InitialSchema migration recorded
-✅ admin user exists
-✅ role is admin
-✅ isActive is true
-✅ emailVerifiedAt is set
-
-✅ All 9 checks passed — database is correctly set up!
-```
-
-If any check fails, see [DATABASE.md](DATABASE.md) for troubleshooting.
-
-### 6. Start Development Server
-
-```bash
-pnpm start:dev
-```
-
-The server will start on `http://localhost:3000`
-
-## Available Scripts
-
-### Development
-
-- `pnpm start:dev` - Start development server with hot reload
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-- `pnpm format` - Format code with Prettier
-
-### Database
-
-- `pnpm db:setup` - Migrate + seed in one command
-- `pnpm migration:run` - Run pending migrations
-- `pnpm migration:revert` - Revert the last migration
-- `pnpm migration:generate -- src/database/migrations/Name` - Generate a migration from entity changes
-- `pnpm seed` - Seed admin user
-
-### Docker (run manually — not in pnpm scripts)
-
-```bash
-docker-compose up -d      # start database
-docker-compose down       # stop database
-docker-compose logs -f    # view logs
-```
+Backend service for the **nhatro** (rental housing) application, built with [NestJS](https://nestjs.com/) and TypeScript.
 
 ## Tech Stack
 
-- **Framework**: NestJS 11.x
-- **Language**: TypeScript 6.x
-- **Database**: PostgreSQL with TypeORM
-- **Authentication**: JWT with Passport
-- **Password Hashing**: bcrypt
+| Technology     | Version | Purpose                                  |
+| -------------- | ------- | ---------------------------------------- |
+| NestJS         | 11.x    | Backend framework                        |
+| TypeScript     | 5.x     | Language                                 |
+| PostgreSQL     | 16      | Database                                 |
+| TypeORM        | 0.3.x   | ORM / migrations                         |
+| JWT + Passport | —       | Authentication (access + refresh tokens) |
+| bcrypt         | 5.x     | Password hashing                         |
+| Swagger        | 11.x    | API documentation                        |
+| pnpm           | latest  | Package manager                          |
+| Docker         | —       | Local database                           |
+
+---
+
+## Prerequisites
+
+Before you start, make sure the following tools are installed:
+
+- **Node.js** ≥ 20 — [nodejs.org](https://nodejs.org)
+- **pnpm** — install with `npm install -g pnpm`
+- **Docker & Docker Compose** — [docker.com](https://www.docker.com)
+
+---
+
+## Installation
+
+### 1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd nhatro-be
+```
+
+### 2. Install dependencies
+
+```bash
+pnpm install
+```
+
+### 3. Configure environment variables
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your configuration:
+
+```env
+# Application
+NODE_ENV=development
+PORT=3000
+
+# Database (matches docker-compose defaults)
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+DB_NAME=nhatro
+DB_SSL=false
+
+# JWT — change these secrets before deploying!
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-in-production
+JWT_REFRESH_EXPIRES_IN=7d
+```
+
+> **Security**: Never commit `.env` to version control. Only `.env.example` should be tracked.
+
+---
+
+## Start the Database
+
+Start a local PostgreSQL instance using Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+This starts a PostgreSQL 16 container named `nhatro-postgres` on port `5432`.
+
+To stop it:
+
+```bash
+docker compose down
+```
+
+To stop and remove data volumes:
+
+```bash
+docker compose down -v
+```
+
+---
+
+## Running the Application
+
+### Development (with hot-reload)
+
+```bash
+pnpm start:dev
+```
+
+### Debug mode
+
+```bash
+pnpm start:debug
+```
+
+### Production
+
+```bash
+pnpm build
+pnpm start:prod
+```
+
+Once running, the API is available at:
+
+- **API base URL**: `http://localhost:3000/api/v1`
+- **Swagger docs**: `http://localhost:3000/api/docs`
+- **Health check**: `http://localhost:3000/api/v1/health`
+
+---
+
+## Database Migrations
+
+> In `development`, `synchronize: true` keeps the schema in sync automatically.  
+> For **production**, always use migrations.
+
+### Generate a migration
+
+```bash
+pnpm migration:generate src/migrations/MigrationName
+```
+
+### Run pending migrations
+
+```bash
+pnpm migration:run
+```
+
+### Revert the last migration
+
+```bash
+pnpm migration:revert
+```
+
+---
+
+## Testing
+
+### Unit tests
+
+```bash
+pnpm test
+```
+
+### Unit tests with coverage
+
+```bash
+pnpm test:cov
+```
+
+### End-to-end (e2e) tests
+
+```bash
+pnpm test:e2e
+```
+
+---
 
 ## Project Structure
 
 ```
 src/
-├── app.module.ts              # Root module with TypeORM config
-├── config/                    # Configuration files
-│   ├── database.config.ts     # Database configuration
-│   └── jwt.config.ts          # JWT configuration
-├── entities/                  # TypeORM entities
-│   ├── user.entity.ts         # User model with RBAC
-│   ├── refresh-token.entity.ts # Refresh tokens
-│   └── audit-log.entity.ts    # Audit logs
-├── common/enums/              # Enumerations
-└── database/migrations/       # Database migrations
+├── main.ts                        # Application entry point
+├── app.module.ts                  # Root module
+├── app.controller.ts              # Health check endpoint
+├── app.service.ts
+│
+├── common/                        # Shared utilities
+│   ├── decorators/                # @GetUser(), @Roles()
+│   ├── dto/                       # Pagination DTOs
+│   ├── filters/                   # HTTP exception filter
+│   ├── guards/                    # JwtAuthGuard, RolesGuard
+│   └── interceptors/              # LoggingInterceptor
+│
+├── config/
+│   ├── app/app.config.ts          # App-level config
+│   └── database/
+│       ├── database.config.ts     # TypeORM factory
+│       └── data-source.ts         # CLI data source for migrations
+│
+└── modules/
+    ├── auth/                      # Authentication (register, login, refresh, logout)
+    │   ├── dto/
+    │   ├── strategies/jwt.strategy.ts
+    │   ├── auth.controller.ts
+    │   ├── auth.module.ts
+    │   └── auth.service.ts
+    │
+    └── users/                     # User management
+        ├── dto/
+        ├── entities/user.entity.ts
+        ├── users.controller.ts
+        ├── users.module.ts
+        └── users.service.ts
 ```
 
-## User Roles
+---
 
-- **admin** - Full system access, manage sellers and buyers
-- **seller** - Manage their own rental properties
-- **buyer** - Browse properties, make inquiries
+## API Endpoints
 
-## Environment Variables
+### Auth
 
-Required variables in `.env`:
+| Method | Endpoint                | Auth required | Description              |
+| ------ | ----------------------- | :-----------: | ------------------------ |
+| POST   | `/api/v1/auth/register` |      No       | Register a new user      |
+| POST   | `/api/v1/auth/login`    |      No       | Login, returns tokens    |
+| POST   | `/api/v1/auth/logout`   |      Yes      | Invalidate refresh token |
+| POST   | `/api/v1/auth/refresh`  |      No       | Refresh access token     |
 
-```env
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
-DB_DATABASE=nhatro
+### Users
 
-# JWT
-JWT_SECRET=your-secret-key
-JWT_ACCESS_TOKEN_EXPIRATION=15m
-JWT_REFRESH_TOKEN_EXPIRATION=7d
+| Method | Endpoint            | Role required | Description              |
+| ------ | ------------------- | :-----------: | ------------------------ |
+| GET    | `/api/v1/users/me`  |      Any      | Get current user profile |
+| GET    | `/api/v1/users`     |     Admin     | List all users           |
+| GET    | `/api/v1/users/:id` |     Admin     | Get user by ID           |
+| PATCH  | `/api/v1/users/:id` |      Any      | Update user              |
+| DELETE | `/api/v1/users/:id` |     Admin     | Delete user              |
 
-# Application
-NODE_ENV=development
-PORT=3000
-BCRYPT_ROUNDS=10
+Full interactive documentation is available at `http://localhost:3000/api/docs`.
+
+---
+
+## Code Style
+
+Lint and format checks:
+
+```bash
+pnpm lint
+pnpm format
 ```
 
-## Documentation
+The project uses ESLint with TypeScript rules and Prettier for formatting.
 
-- [DATABASE.md](DATABASE.md) - Database setup and schema documentation
-- [.github/copilot-instructions.md](.github/copilot-instructions.md) - Coding standards and conventions
+---
 
-## Security Features
+## Environment Variables Reference
 
-- ✅ Password hashing with bcrypt
-- ✅ JWT access tokens (short-lived)
-- ✅ Refresh token rotation
-- ✅ Audit logging for auth events
-- ✅ Role-based access control
-- ✅ Resource ownership validation
-
-## Next Steps
-
-1. Implement authentication module (login, logout, password reset)
-2. Create guards for RBAC enforcement
-3. Add DTOs for request validation
-4. Implement business logic modules (houses, inquiries, etc.)
+| Variable                 | Default       | Description                            |
+| ------------------------ | ------------- | -------------------------------------- |
+| `NODE_ENV`               | `development` | Runtime environment                    |
+| `PORT`                   | `3000`        | HTTP server port                       |
+| `DB_HOST`                | `localhost`   | PostgreSQL host                        |
+| `DB_PORT`                | `5432`        | PostgreSQL port                        |
+| `DB_USERNAME`            | `postgres`    | Database username                      |
+| `DB_PASSWORD`            | `postgres`    | Database password                      |
+| `DB_NAME`                | `nhatro`      | Database name                          |
+| `DB_SSL`                 | `false`       | Enable SSL for DB connection           |
+| `JWT_SECRET`             | —             | **Required** Secret for access tokens  |
+| `JWT_EXPIRES_IN`         | `15m`         | Access token expiry                    |
+| `JWT_REFRESH_SECRET`     | —             | **Required** Secret for refresh tokens |
+| `JWT_REFRESH_EXPIRES_IN` | `7d`          | Refresh token expiry                   |
