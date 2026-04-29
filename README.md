@@ -71,6 +71,10 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 JWT_EXPIRES_IN=15m
 JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-in-production
 JWT_REFRESH_EXPIRES_IN=7d
+
+# Initial admin account — fill in before running pnpm seed:admin
+ADMIN_USERNAME=your-admin-username
+ADMIN_PASSWORD=your-admin-password
 ```
 
 > **Security**: Never commit `.env` to version control. Only `.env.example` should be tracked.
@@ -98,6 +102,41 @@ To stop and remove data volumes:
 ```bash
 docker compose down -v
 ```
+
+---
+
+## Provision Initial Admin Account
+
+The first admin account must be created by the developer before the system can be used. The admin's credentials are supplied via `.env` and the seed script inserts the hashed account into the database.
+
+### 1. Set credentials in `.env`
+
+```env
+ADMIN_USERNAME=your-admin-username
+ADMIN_PASSWORD=your-admin-password
+```
+
+> Choose a strong password. These values are never stored in plain text — the script hashes the password with bcrypt before inserting.
+
+### 2. Run the seed script
+
+```bash
+pnpm seed:admin
+```
+
+Expected output on first run:
+
+```
+Admin "your-admin-username" provisioned successfully.
+```
+
+If the username already exists the script exits safely without making any changes:
+
+```
+Admin "your-admin-username" already exists — skipping.
+```
+
+> The script is idempotent — it is safe to run multiple times.
 
 ---
 
@@ -288,3 +327,5 @@ The project uses ESLint with TypeScript rules and Prettier for formatting.
 | `JWT_EXPIRES_IN`         | `15m`         | Access token expiry                    |
 | `JWT_REFRESH_SECRET`     | —             | **Required** Secret for refresh tokens |
 | `JWT_REFRESH_EXPIRES_IN` | `7d`          | Refresh token expiry                   |
+| `ADMIN_USERNAME`         | —             | **Required for seed** Admin username   |
+| `ADMIN_PASSWORD`         | —             | **Required for seed** Admin password   |
