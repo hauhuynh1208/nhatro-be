@@ -132,13 +132,12 @@ Once running, the API is available at:
 
 ## Database Migrations
 
-> In `development`, `synchronize: true` keeps the schema in sync automatically.  
-> For **production**, always use migrations.
+> `synchronize` is always `false`. Use migrations in all environments.
 
 ### Generate a migration
 
 ```bash
-pnpm migration:generate src/migrations/MigrationName
+pnpm migration:generate src/database/migrations/MigrationName
 ```
 
 ### Run pending migrations
@@ -196,8 +195,26 @@ src/
 ├── config/
 │   ├── app/app.config.ts          # App-level config
 │   └── database/
-│       ├── database.config.ts     # TypeORM factory
-│       └── data-source.ts         # CLI data source for migrations
+│       └── database.config.ts     # TypeORM factory
+│
+├── database/
+│   ├── data-source.ts             # CLI data source for migrations
+│   └── migrations/                # Generated migration files
+│
+├── entities/                      # TypeORM entity classes
+│   ├── user.entity.ts
+│   ├── buyer.entity.ts
+│   ├── variable.entity.ts
+│   ├── formula.entity.ts
+│   ├── usage-record.entity.ts
+│   ├── submission.entity.ts
+│   ├── replacement-request.entity.ts
+│   ├── sheet-config.entity.ts
+│   ├── sheet-config-column.entity.ts
+│   ├── bill.entity.ts
+│   ├── bill-line-item.entity.ts
+│   ├── payment.entity.ts
+│   └── audit-log.entity.ts
 │
 └── modules/
     ├── auth/                      # Authentication (register, login, refresh, logout)
